@@ -17,6 +17,14 @@ export default function App() {
   const [txtapellido, setTxtApellido] = useState();
   const [numElementos, setNumElemnetos] = useState(personas.length);
 
+  const TouchableHighlightEjemplo = () => {
+    (
+      <View>
+        <Text> E </Text>
+      </View>
+    );
+  }
+
   let existePersona = () => {
     for (let i = 0; i < personas.length; i++) {
       if (personas[i].cedula == txtcedula) {
@@ -45,26 +53,32 @@ export default function App() {
     limpiar();
   }
 
-  let ItemPersona = (props) => {
+  let ItemPersona = ({ indice, persona }) => {
     return (
       <View style={styles.itemPersona}>
         <View style={styles.itemIndice}>
-          <Text style={styles.textoPrincipal}>{props.indice}</Text>
+          <Text style={styles.textoPrincipal}>{indice}</Text>
         </View>
         <View style={styles.itemContenido}>
           <Text style={styles.textoPrincipal}>
-            {props.persona.nombre} {props.persona.apellido} </Text>
-          <Text style={styles.textoSecundario}>{props.persona.cedula}</Text>
+            {persona.nombre} {persona.apellido} </Text>
+          <Text style={styles.textoSecundario}>{persona.cedula}</Text>
         </View>
         <View style={styles.itemBotones}>
+          <TouchableHighlight
+            activeOpacity={0.6}
+            underlayColor="#DDDDDD"
+            onPress={() => alert('Pressed!')}>
+            <MyComponent />
+          </TouchableHighlight>;
           <Button
             title=' E '
             color='green'
             onPress={() => {
               indiceSeleccionado = props.indice
-              setTxtCedula(props.persona.cedula);
-              setTxtNombre(props.persona.nombre);
-              setTxtApellido(props.persona.apellido);
+              setTxtCedula(persona.cedula);
+              setTxtNombre(persona.nombre);
+              setTxtApellido(persona.apellido);
               esNuevo = false;
             }} />
           <Button
@@ -121,13 +135,12 @@ export default function App() {
       <View style={styles.areaContenido}>
         <FlatList
           data={personas}
-          renderItem={(elemento) => {
-            return <ItemPersona indice={elemento.index} persona={elemento.item} />
+          renderItem={({ index, item }) => {
+            return <ItemPersona indice={index} persona={item} />
           }
           }
-          keyExtractor={(item) => {
-            return item.cedula;
-          }}
+          keyExtractor={item => item.cedula
+          }
         />
         < StatusBar style="auto" />
       </View >

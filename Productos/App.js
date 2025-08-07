@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { Alert, Button, TextInput, ScrollView, FlatList, StyleSheet, Text, View } from 'react-native';
+import { Modal,TouchableHighlight, Alert, Button, TextInput, ScrollView, FlatList, StyleSheet, Text, View } from 'react-native';
 import { useState } from 'react';
 
 let productos = [
@@ -20,6 +20,24 @@ export default function App() {
   const [precioCompra, setPrecioCompra] = useState();
   const [precioVenta, setPrecioVenta] = useState();
   const [numElementos, setNumElemnetos] = useState(productos.length);
+  const [modalVisible, setModalVisible] = useState(false);
+
+  let mostrarModalEliminar = (indice) => {
+    indiceSeleccionado = indice;
+    setModalVisible(true);
+  };
+
+  let confirmarEliminacion = () => {
+    productos.splice(indiceSeleccionado, 1);
+    setNumElemnetos(productos.length);
+    // setActualizar(a => !a); // Eliminado
+    setModalVisible(false);
+    limpiar();
+  };
+
+  let cancelarEliminacion = () => {
+    setModalVisible(false);
+  };
 
   let existeProducto = () => {
     for (let i = 0; i < productos.length; i++) {
@@ -62,39 +80,44 @@ export default function App() {
     setPrecioVenta(null);
     esNuevo = true;
   }
-  let ItemProducto = (props) => {
+  let ItemProducto = ({indice,producto}) => {
     return <View style={styles.producto}>
       <View style={styles.codigo}>
-        <Text>{props.producto.codigo}</Text>
+        <Text>{producto.codigo}</Text>
       </View>
       <View style={styles.dproducto}>
-        <Text>{props.producto.nombre}</Text>
-        <Text>{props.producto.categoria}</Text>
+        <Text>{producto.nombre}</Text>
+        <Text>{producto.categoria}</Text>
       </View>
       <View style={styles.dventa}>
-        <Text>{props.producto.precioVenta}</Text>
+        <Text>{producto.precioVenta}</Text>
       </View>
       <View style={styles.dbotones}>
-        <Button
-          title=' E '
-          color='green'
-          onPress={() => {
-            indiceSeleccionado = props.indice
-            setCodigo(String(props.producto.codigo));
-            setNombre(props.producto.nombre);
-            setCategoria(props.producto.categoria);
-            setPrecioCompra(String(props.producto.precioCompra));
-            setPrecioVenta(String(props.producto.precioVenta));
+      <TouchableHighlight
+        activeOpacity={0.6}
+        underlayColor="#A5D6A7"
+        style={{
+          borderRadius: 5,
+          padding: 6,
+          backgroundColor: 'green',
+          marginRight: 5,
+        }}
+        onPress={() => {
+          indiceSeleccionado = indice
+            setCodigo(String(producto.codigo));
+            setNombre(producto.nombre);
+            setCategoria(producto.categoria);
+            setPrecioCompra(String(producto.precioCompra));
+            setPrecioVenta(String(producto.precioVenta));
             esNuevo = false;
-          }} />
+        }}
+      >
+        <Text style={{ fontWeight: 'bold', color: 'white' }}> E </Text>
+      </TouchableHighlight>
         <Button
           title=' X '
           color='red'
-          onPress={() => {
-            indiceSeleccionado = props.indice;
-            productos.splice(indiceSeleccionado, 1);
-            setNumElemnetos(productos.length);
-          }} />
+          onPress={() => mostrarModalEliminar(indice)} />
       </View>
     </View>
   }
@@ -131,18 +154,49 @@ export default function App() {
       <View style={styles.cuerpo}>
         <FlatList style={styles.c3}
           data={productos}
-          renderItem={(elemento) => {
-            return <ItemProducto indice={elemento.index} producto={elemento.item} />
+          renderItem={({index,item}) => {
+            return <ItemProducto indice={index} producto={item} />
           }}
-          keyExtractor={(item) => {
-            return item.codigo;
-          }}
+          keyExtractor={item => item.codigo
+          }
         />
       </View>
       <View style={styles.pie}>
         <Text>CREADO POR : CARLOS TIPAN</Text>
       </View>
       <StatusBar style="auto" />
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Confirmar eliminación</Text>
+            <Text style={styles.modalMessage}>
+              ¿Está seguro que quiere eliminar este producto?
+            </Text>
+            <View style={styles.modalButtons}>
+              <TouchableHighlight
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={cancelarEliminacion}
+                underlayColor="#f0f0f0"
+              >
+                <Text style={styles.cancelButtonText}>Cancelar</Text>
+              </TouchableHighlight>
+              <TouchableHighlight
+                style={[styles.modalButton, styles.acceptButton]}
+                onPress={confirmarEliminacion}
+                underlayColor="#d32f2f"
+              >
+                <Text style={styles.acceptButtonText}>Aceptar</Text>
+              </TouchableHighlight>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -215,5 +269,66 @@ const styles = StyleSheet.create({
     flex: 4,
     justifyContent: 'center',
     alignItems: 'center'
-  }
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    minWidth: 300,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  modalMessage: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+    color: '#666',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  modalButton: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 5,
+    marginHorizontal: 5,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: '#f5f5f5',
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  acceptButton: {
+    backgroundColor: '#f44336',
+  },
+  cancelButtonText: {
+    color: '#333',
+    fontWeight: 'bold',
+  },
+  acceptButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
 });
